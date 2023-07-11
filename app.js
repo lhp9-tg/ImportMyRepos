@@ -1,8 +1,11 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import { Octokit, App } from "octokit";
 import { writeFile } from "node:fs/promises";
 
+
 // Create a personal access token at https://github.com/settings/tokens/new?scopes=repo
-const octokit = new Octokit({ auth: `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` });
+const octokit = new Octokit({ auth: `token ${process.env.tokenAPIGithub}` });
 
 // Compare: https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
 const {
