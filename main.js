@@ -1,147 +1,25 @@
-// Se créer un token d'authentification grace à ce lien https://github.com/settings/tokens/new?scopes=repo
-// Dans la partie select scopes, on coche repo et admin:org (pour avoir accès aux repos privées et pouvoir manipuler les dépots) et on génère le token
-// et on le stocke dans un fichier .env
-const octokit = new Octokit({ auth: `token ${process.env.tokenAPIGithub}` });
+import { octokit } from "./modules/config.js";
+import listMyReposFromOrg from "./modules/listMyReposFromOrg.js";
+import cloneAndCreateRepos from "./modules/cloneAndCreateRepos.js";
 
-// Dotenv est un module qui charge les variables d'environnement à partir d'un fichier .env dans process.env
-import "dotenv/config.js";
+// Fonction créé par chatGPT pour attendre que listMyReposFromOrg se termine avant de lancer cloneAndCreateRepos
+(async function main() {
+  // On récupère le nom de l'utilisateur connecté
+  const {
+    data: { login },
+  } = await octokit.rest.users.getAuthenticated();
+  console.log("Bonjour, %s", login);
 
-// Octokit est un module qui permet d'interagir avec l'API Github
-import { Octokit, App } from "octokit";
+  // On définit les organisations dont on veut récupérer les repos
+  // const orgWatt = "O-Clock-Watt";
+  const orgReact = "O-clock-Watt-Webb-react";
 
-// simplegit est un module qui permet de manipuler les dépots git
-import simpleGit from "simple-git";
+  // On définit le nom d'utilisateur dont on veut récupérer les repos
+  const username = login;
 
-import fs from "node:fs/promises";
+  // Appel de la fonction listMyReposFromOrg
+  await listMyReposFromOrg(orgReact, username);
 
-// On récupère le nom de l'utilisateur connecté
-const {
-  data: { login },
-} = await octokit.rest.users.getAuthenticated();
-console.log("Bonjour, %s", login);
-
-// On définit les organisations dont on veut récupérer les repos
-// const orgWatt = "O-Clock-Watt";
-const orgReact = "O-clock-Watt-Webb-react";
-
-// On définit le nom d'utilisateur dont on veut récupérer les repos
-const username = login;
-
-async function listMyReposFromOrg(org) {
-  // On récupère les repos de l'organisation dont le nom est passé en paramètre et qui contient le nom d'utilisateur
-  try {
-    const { data } = await octokit.rest.repos.listForOrg({
-      org,
-      type: "all", // on peut utiliser 'all', 'private', 'public', 'forks', 'sources', ou 'member'
-    });
-    console.log(data);
-
-    const repoNames = data
-      .map((repo) => repo.name)
-      .filter((name) => name.includes(username));
-
-    // On écrit les noms des repos dans un fichier JSON
-    try {
-      await writeFile(`${org}_repos.json`, JSON.stringify(repoNames, null, 2));
-      console.log(
-        `Les repos de l'organisation ${org} qui contiennent le nom d'utilisateur "${username}" ont été ecrit dansd le fichier ${org}_repos.json`
-      );
-    } catch (err) {
-      console.error("Erreur lors de l'ecriture des repos dans le JSON", err);
-    }
-  } catch (err) {
-    console.error(
-      `Une erreur est survenue lors du parcours du repo ${org}`,
-      err
-    );
-  }
-}
-
-async function cloneAndCreateRepos(org, username) {
-  try {
-    const data = await fs.readFile(`${org}_repos.json`, "utf8");
-    const repos = JSON.parse(data);
-    console.log(repos);
-
-    for (const repo of repos) {
-      const orgRepoUrl = `git@github.com:${org}/${repo}.git`;
-      const dir = `./${org}/${repo}`;
-
-      // on va créer une nouvelle instance de simple-git pour chaque repo
-      const git = simpleGit();
-
-      // On clone
-      await git
-        .clone(orgRepoUrl, dir)
-        .then(() => console.log(`Repo ${repo} cloné localement`))
-        .catch((err) =>
-          console.error(
-            `Une erreur est survenue lors du clonage du repo ${repo}`,
-            err
-          )
-        );
-
-      // On créé un nouveau repo sur notre page Github
-      await octokit.rest.repos
-        .createForAuthenticatedUser({
-          name: repo, // le nom du repo à créer
-          private: false, // ou true si on veux que le repo soit privé mais non ^^
-        })
-        .then(() => console.log(`Repo ${repo} créé sur Github`))
-        .catch((err) =>
-          console.error(
-            `Une erreur est survenue lors de la création du repo ${repo}`,
-            err
-          )
-        );
-
-      // On fait un add . et un commit
-      await git
-        .add(".")
-        .commit("Initial commit")
-        .then(() =>
-          console.log(`Modifications ajoutées et commit effectué pour ${repo}`)
-        )
-        .catch((err) =>
-          console.error(
-            `Une erreur est survenue lors de l'ajout et du commit des modifications pour ${repo}`,
-            err
-          )
-        );
-
-      const userRepoUrl = `git@github.com:${username}/${repo}.git`;
-
-      // On ajoute notre remote pour pouvoir pusher le repo avec upstream sur NOTRE page Github
-      // On push sur notre la page de l'orga avec origin
-      await git
-        .addRemote("upstream", userRepoUrl)
-        .then(() => console.log(`Remote ${userRepoUrl} ajouté`))
-        .catch((err) =>
-          console.error(
-            `Une erreur est survenue lors de l'ajout du remote ${userRepoUrl}`,
-            err
-          )
-        );
-
-      // On push chez nous... et finito
-      await git
-        .push("upstream", "master")
-        .then(() => console.log(`Repo ${repo} pushé sur Github`))
-        .catch((err) =>
-          console.error(
-            `Une erreur est survenue lors du push du repo ${repo} sur votre page Github`,
-            err
-          )
-        );
-    }
-  } catch (err) {
-    console.error(
-      `Une erreur est survenue lors du parcours du repo ${org}`,
-      err
-    );
-  }
-}
-
-// listMyReposFromOrg(orgWatt);
-// listMyReposFromOrg(orgReact);
-cloneAndCreateRepos(orgReact, username);
+  // Appel de la fonction cloneAndCreateRepos
+  await cloneAndCreateRepos(orgReact, username);
+})();
