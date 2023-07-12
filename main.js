@@ -113,7 +113,7 @@ async function cloneAndCreateRepos(org, username) {
 
       // Ajouter le remote du nouveau repo sur votre page Github
       await git
-        .addRemote("origin", userRepoUrl)
+        .addRemote("upstream", userRepoUrl)
         .then(() => console.log(`Remote ${userRepoUrl} ajouté`))
         .catch((err) =>
           console.error(
@@ -129,17 +129,6 @@ async function cloneAndCreateRepos(org, username) {
       //   .catch((err) =>
       //     console.error(
       //       `Une erreur est survenue lors du push du repo ${repo}`,
-      //       err
-      //     )
-      //   );
-
-      // // Ajouter le remote du repo original
-      // await git
-      //   .addRemote("upstream", orgRepoUrl)
-      //   .then(() => console.log(`Remote ${orgRepoUrl} ajouté`))
-      //   .catch((err) =>
-      //     console.error(
-      //       `Une erreur est survenue lors de l'ajout du remote ${orgRepoUrl}`,
       //       err
       //     )
       //   );
