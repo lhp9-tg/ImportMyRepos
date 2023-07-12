@@ -1,4 +1,4 @@
-// Se crée un token d'authentification grace à ce lien https://github.com/settings/tokens/new?scopes=repo
+// Se créer un token d'authentification grace à ce lien https://github.com/settings/tokens/new?scopes=repo
 // Dans la partie select scopes, on coche repo et admin:org (pour avoir accès aux repos privées et pouvoir manipuler les dépots) et on génère le token
 // et on le stocke dans un fichier .env
 const octokit = new Octokit({ auth: `token ${process.env.tokenAPIGithub}` });
@@ -32,7 +32,7 @@ async function listMyReposFromOrg(org) {
   try {
     const { data } = await octokit.rest.repos.listForOrg({
       org,
-      type: "all", // vous pouvez utiliser 'all', 'private', 'public', 'forks', 'sources', ou 'member'
+      type: "all", // on peut utiliser 'all', 'private', 'public', 'forks', 'sources', ou 'member'
     });
     console.log(data);
 
@@ -65,12 +65,12 @@ async function cloneAndCreateRepos(org, username) {
 
     for (const repo of repos) {
       const orgRepoUrl = `git@github.com:${org}/${repo}.git`;
-      const dir = `./${org}/${repo}`; // Le répertoire de clone doit être spécifique à chaque repo
+      const dir = `./${org}/${repo}`;
 
-      // Créer une nouvelle instance de simple-git pour chaque repo
+      // on va créer une nouvelle instance de simple-git pour chaque repo
       const git = simpleGit();
 
-      // Cloner le repo
+      // On clone
       await git
         .clone(orgRepoUrl, dir)
         .then(() => console.log(`Repo ${repo} cloné localement`))
@@ -81,11 +81,11 @@ async function cloneAndCreateRepos(org, username) {
           )
         );
 
-      // Créer le nouveau repo sur votre page Github
+      // On créé un nouveau repo sur notre page Github
       await octokit.rest.repos
         .createForAuthenticatedUser({
           name: repo, // le nom du repo à créer
-          private: false, // ou true si vous voulez que le repo soit privé
+          private: false, // ou true si on veux que le repo soit privé mais non ^^
         })
         .then(() => console.log(`Repo ${repo} créé sur Github`))
         .catch((err) =>
@@ -95,7 +95,7 @@ async function cloneAndCreateRepos(org, username) {
           )
         );
 
-      // Ajouter les modifications à l'index git et faire un commit
+      // On fait un add . et un commit
       await git
         .add(".")
         .commit("Initial commit")
@@ -111,7 +111,8 @@ async function cloneAndCreateRepos(org, username) {
 
       const userRepoUrl = `git@github.com:${username}/${repo}.git`;
 
-      // Ajouter le remote du nouveau repo sur votre page Github
+      // On ajoute notre remote pour pouvoir pusher le repo avec upstream sur NOTRE page Github
+      // On push sur notre la page de l'orga avec origin
       await git
         .addRemote("upstream", userRepoUrl)
         .then(() => console.log(`Remote ${userRepoUrl} ajouté`))
@@ -122,13 +123,13 @@ async function cloneAndCreateRepos(org, username) {
           )
         );
 
-      // Pusher le repo sur votre page Github
+      // On push chez nous... et finito
       await git
-        .push("origin", "master")
+        .push("upstream", "master")
         .then(() => console.log(`Repo ${repo} pushé sur Github`))
         .catch((err) =>
           console.error(
-            `Une erreur est survenue lors du push du repo ${repo}`,
+            `Une erreur est survenue lors du push du repo ${repo} sur votre page Github`,
             err
           )
         );
