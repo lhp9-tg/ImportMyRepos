@@ -1,17 +1,22 @@
 {
   "name": "importmyrepos",
-  "version": "1.0.0",
-  "description": "",
-  "main": "app.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "private": true,
+  "version": "0.0.0",
   "type": "module",
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^4.4.0"
+  },
   "dependencies": {
     "dotenv": "^16.3.1",
-    "octokit": "^2.1.0"
+    "express": "^4.18.2",
+    "isomorphic-git": "^1.24.3",
+    "octokit": "^3.0.0",
+    "simple-git": "^3.19.1",
+    "simplegit": "^1.0.2"
   }
 }
