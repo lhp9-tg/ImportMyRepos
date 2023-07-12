@@ -122,16 +122,16 @@ async function cloneAndCreateRepos(org, username) {
           )
         );
 
-      // // Pusher le repo sur votre page Github
-      // await git
-      //   .push("origin", "master")
-      //   .then(() => console.log(`Repo ${repo} pushé sur Github`))
-      //   .catch((err) =>
-      //     console.error(
-      //       `Une erreur est survenue lors du push du repo ${repo}`,
-      //       err
-      //     )
-      //   );
+      // Pusher le repo sur votre page Github
+      await git
+        .push("origin", "master")
+        .then(() => console.log(`Repo ${repo} pushé sur Github`))
+        .catch((err) =>
+          console.error(
+            `Une erreur est survenue lors du push du repo ${repo}`,
+            err
+          )
+        );
     }
   } catch (err) {
     console.error(
